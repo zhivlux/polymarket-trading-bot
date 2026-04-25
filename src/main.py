@@ -11,7 +11,7 @@ import sys
 # Add src to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import Config
+from config_template import Config, logger  # Update import
 from logging_utils import logger
 from data_manager import DataManager
 from polymarket_client import PolymarketDataFetcher
@@ -24,7 +24,16 @@ class PolyMarketAutoTradingBot:
     """Main Trading Bot"""
     
     def __init__(self):
-        Config.validate()
+        # Validate config (akan throw error jika ada yang missing)
+        try:
+            Config.validate()
+        except ValueError as e:
+            logger.error(f"❌ Configuration error: {e}")
+            if not Config.IS_PRODUCTION:
+                logger.warning("⚠️  Running in demo mode without API keys")
+                self.demo_mode = True
+            else:
+                raise
         
         self.data_manager = DataManager()
         self.data_fetcher = PolymarketDataFetcher()

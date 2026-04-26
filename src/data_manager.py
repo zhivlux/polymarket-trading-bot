@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import os
-from config import Config
+from config_template import Config
 from logging_utils import logger
 
 class DataManager:

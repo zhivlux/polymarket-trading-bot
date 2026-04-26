@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 from sklearn.preprocessing import StandardScaler
 from river import linear_model, preprocessing, compose
 import lightgbm as lgb
-from config import Config
+from config_template import Config
 from logging_utils import logger
 
 class ModelManager:

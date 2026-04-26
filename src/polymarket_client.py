@@ -3,7 +3,7 @@ import asyncio
 from typing import Dict, Optional
 from py_clob_client import ClobClient
 import ccxt
-from config import Config
+from config_template import Config
 from logging_utils import logger
 
 class PolymarketDataFetcher:

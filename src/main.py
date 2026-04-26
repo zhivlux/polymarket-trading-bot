@@ -11,7 +11,8 @@ import sys
 # Add src to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config_template import Config, logger  # Update import
+# ✅ CORRECT IMPORTS
+from config_template import Config
 from logging_utils import logger
 from data_manager import DataManager
 from polymarket_client import PolymarketDataFetcher

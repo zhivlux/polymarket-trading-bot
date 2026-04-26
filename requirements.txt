@@ -1,28 +1,30 @@
-# ============ CORE DEPENDENCIES ============
+# Core
 python-dotenv
 requests
 aiohttp
 uvloop
 
-# ============ DATA & DATABASE ============
+# Data
 pandas
 numpy
 
-# ============ POLYMARKET & EXCHANGES ============
-py-clob-client>=0.34.0
-ccxt>=4.5.0
+# APIs
+py-clob-client
+ccxt
 
-# ============ BACKTESTING & TRADING ============
+# Trading
 backtesting
 
-# ============ MACHINE LEARNING ============
+# ML
 scikit-learn
 lightgbm
 river
 
-# ============ LLM - GOOGLE GEMINI ============
-google-generativeai
+# LLM - NEW PACKAGE
+google-genai
 
-# ============ LOGGING & MONITORING ============
-python-json-logger
+# Scheduling
 apscheduler
+
+# Utils
+python-json-logger

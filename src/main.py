@@ -246,5 +246,20 @@ class PolyMarketAutoTradingBot:
         print(f"{'='*70}\n")
 
 if __name__ == "__main__":
-    bot = PolyMarketAutoTradingBot()
-    bot.run_paper_trading(iterations=100, interval=60)
+    import sys
+    
+    # Check if auto-trading or manual mode
+    mode = os.getenv("BOT_MODE", "manual")
+    
+    if mode == "auto":
+        logger.info("🤖 Starting in AUTO mode (self-discovering markets)")
+        from auto_trading_system import AutoTradingSystem
+        system = AutoTradingSystem()
+        system.start_auto_trading(
+            discovery_interval=60,  # Discover every 60 seconds
+            trading_interval=30     # Trade every 30 seconds
+        )
+    else:
+        logger.info("🎯 Starting in MANUAL mode")
+        bot = PolyMarketAutoTradingBot()
+        bot.run_paper_trading(iterations=100, interval=60)

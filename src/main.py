@@ -25,29 +25,35 @@ class PolyMarketAutoTradingBot:
     """Main Trading Bot"""
     
     def __init__(self):
-        # Validate config (akan throw error jika ada yang missing)
+        # Validate config (allow demo mode)
         try:
             Config.validate()
         except ValueError as e:
             logger.error(f"❌ Configuration error: {e}")
-            if not Config.IS_PRODUCTION:
-                logger.warning("⚠️  Running in demo mode without API keys")
-                self.demo_mode = True
+            if Config.DEMO_MODE:
+                logger.warning("⚠️  Running in demo mode (paper trading with simulated data)")
             else:
                 raise
         
-        self.data_manager = DataManager()
-        self.data_fetcher = PolymarketDataFetcher()
-        self.wallet = VirtualWallet(Config.INITIAL_BALANCE)
-        self.model_manager = ModelManager()
-        self.gemini_advisor = GeminiTradingAdvisor()
-        self.feature_engineer = FeatureEngineer()
+        # Initialize components (with graceful fallback)
+        try:
+            self.data_manager = DataManager()
+            self.data_fetcher = PolymarketDataFetcher()
+            self.wallet = VirtualWallet(Config.INITIAL_BALANCE)
+            self.model_manager = ModelManager()
+            self.gemini_advisor = GeminiTradingAdvisor()
+            self.feature_engineer = FeatureEngineer()
+            
+            self.iteration = 0
+            self.market_id = Config.POLYMARKET_MARKET_ID or "demo-market-id"
+            
+            logger.info("🚀 PolyMarket Trading Bot Initialized")
         
-        self.iteration = 0
-        self.market_id = Config.POLYMARKET_MARKET_ID
+        except Exception as e:
+            logger.error(f"❌ Initialization error: {e}", exc_info=True)
+            if not Config.DEMO_MODE:
+                raise
         
-        logger.info("🚀 PolyMarket Trading Bot Initialized")
-    
     def get_all_features(self) -> Dict:
         """Get combined features from all sources"""
         features = {}

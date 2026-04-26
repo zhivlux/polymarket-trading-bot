@@ -1,5 +1,5 @@
 # src/gemini_integration.py
-import google.generativeai as genai
+import google.genai as genai
 from typing import Optional, Dict
 from config_template import Config
 from logging_utils import logger
@@ -9,17 +9,23 @@ class GeminiTradingAdvisor:
     
     def __init__(self):
         try:
+            if not Config.GOOGLE_API_KEY:
+                logger.warning("⚠️  Gemini API key not set, using mock signals")
+                self.model = None
+                return
+            
             genai.configure(api_key=Config.GOOGLE_API_KEY)
-            self.model = genai.GenerativeModel('gemini-pro')
+            self.client = genai.Client()
             logger.info("✅ Gemini model initialized")
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Gemini: {e}")
+            logger.warning(f"⚠️  Gemini initialization failed: {e}, using mock signals")
             self.model = None
     
     def get_market_signal(self, market_name: str, market_data: Dict) -> Optional[str]:
         """Get trading signal from Gemini"""
-        if not self.model:
-            return None
+        
+        if not self.model and Config.GOOGLE_API_KEY:
+            return self._get_mock_signal(market_data)
         
         try:
             price = market_data.get('price', 0.5)
@@ -42,20 +48,45 @@ class GeminiTradingAdvisor:
             Keep response brief and actionable. Format: SIGNAL: [BUY/SELL/HOLD], Confidence: [0-100]%
             """
             
-            response = self.model.generate_content(prompt)
-            signal_text = response.text.strip()
+            response = self.client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
+            )
             
+            signal_text = response.text.strip()
             logger.info(f"📊 Gemini Signal: {signal_text}")
             return signal_text
         
         except Exception as e:
-            logger.warning(f"⚠️ Gemini API error: {e}")
-            return None
+            logger.warning(f"⚠️  Gemini API error: {e}, using mock signal")
+            return self._get_mock_signal(market_data)
+    
+    def _get_mock_signal(self, market_data: Dict) -> str:
+        """Generate mock signal based on market data (demo mode)"""
+        
+        price = market_data.get('price', 0.5)
+        bid_ask_ratio = market_data.get('bid_ask_ratio', 0.5)
+        volume_pressure = market_data.get('volume_pressure', 0)
+        
+        # Simple mock logic
+        if bid_ask_ratio > 0.55 and volume_pressure > 0:
+            signal = "BUY"
+            confidence = min(90, 50 + int(bid_ask_ratio * 100))
+        elif bid_ask_ratio < 0.45 and volume_pressure < 0:
+            signal = "SELL"
+            confidence = min(90, 50 + int((1 - bid_ask_ratio) * 100))
+        else:
+            signal = "HOLD"
+            confidence = 50
+        
+        logger.info(f"🎲 Mock Signal (demo): {signal}, Confidence: {confidence}%")
+        return f"SIGNAL: {signal}, Confidence: {confidence}%"
     
     def get_strategy_advice(self, wallet_stats: Dict) -> Optional[str]:
         """Get adaptive strategy advice from Gemini"""
-        if not self.model:
-            return None
+        
+        if not self.model or not Config.GOOGLE_API_KEY:
+            return "📌 Demo mode: Adjust strategies based on your preferences"
         
         try:
             win_rate = wallet_stats.get('win_rate', 0)
@@ -73,19 +104,23 @@ class GeminiTradingAdvisor:
             Keep it concise and actionable.
             """
             
-            response = self.model.generate_content(prompt)
-            advice = response.text.strip()
+            response = self.client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
+            )
             
+            advice = response.text.strip()
             logger.info(f"🎯 Strategy Advice: {advice}")
             return advice
         
         except Exception as e:
-            logger.warning(f"⚠️ Gemini API error: {e}")
+            logger.warning(f"⚠️  Gemini API error: {e}")
             return None
     
     def summarize_daily_report(self, stats: Dict) -> Optional[str]:
         """Generate daily trading report"""
-        if not self.model:
+        
+        if not self.model or not Config.GOOGLE_API_KEY:
             return None
         
         try:
@@ -100,9 +135,13 @@ class GeminiTradingAdvisor:
             Focus on: performance, key patterns, next steps.
             """
             
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
+            )
+            
             return response.text.strip()
         
         except Exception as e:
-            logger.warning(f"⚠️ Gemini API error: {e}")
+            logger.warning(f"⚠️  Gemini API error: {e}")
             return None

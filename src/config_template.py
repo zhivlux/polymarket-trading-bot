@@ -1,7 +1,7 @@
 # src/config_template.py
 """
-Default configuration template.
-Real configuration loads from environment variables set in run.claw.cloud dashboard.
+Configuration management with demo mode support.
+If API keys not set, bot runs in demo mode with simulated data.
 """
 
 import os
@@ -48,24 +48,31 @@ class Config:
     # ===== DEPLOYMENT MODE =====
     IS_PRODUCTION = os.getenv("IS_PRODUCTION", "False").lower() == "true"
     
+    # ===== DEMO MODE (auto-enable if no API keys) =====
+    DEMO_MODE = not (GOOGLE_API_KEY and POLYMARKET_PRIVATE_KEY)
+    
     @staticmethod
     def validate():
-        """Validate critical configuration"""
-        errors = []
+        """Validate configuration - allow demo mode if keys missing"""
         
+        if Config.DEMO_MODE:
+            print("⚠️  RUNNING IN DEMO MODE (simulated trading, no real transactions)")
+            print("   Set GOOGLE_API_KEY and POLYMARKET_PRIVATE_KEY for production mode")
+            return True
+        
+        # In production mode, require both keys
+        errors = []
         if not Config.GOOGLE_API_KEY:
             errors.append("❌ GOOGLE_API_KEY not set")
-        
         if not Config.POLYMARKET_PRIVATE_KEY:
             errors.append("❌ POLYMARKET_PRIVATE_KEY not set")
         
         if errors:
             print("\n".join(errors))
-            print("\n⚠️  Missing required environment variables!")
-            print("Please set them in your .env file (local) or dashboard (production)")
-            raise ValueError("Configuration validation failed")
+            raise ValueError("Production mode requires API keys")
         
-        print("✅ Configuration validated successfully")
+        print("✅ Configuration validated (PRODUCTION MODE)")
+        return True
     
     @staticmethod
     def create_directories():

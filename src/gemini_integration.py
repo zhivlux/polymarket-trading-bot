@@ -1,7 +1,7 @@
 # src/gemini_integration.py
 import google.generativeai as genai
 from typing import Optional, Dict
-from config import Config
+from config_template import Config
 from logging_utils import logger
 
 class GeminiTradingAdvisor:
